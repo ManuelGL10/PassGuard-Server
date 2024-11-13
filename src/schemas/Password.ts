@@ -1,11 +1,19 @@
-import mongoose from "mongoose";
-const {Schema} = mongoose; 
+import mongoose, { Schema, Document } from "mongoose";
 
-const Password = new Schema({
-    nombre: { type:String, required: true}, 
-    tipo_elemento: { type:String, requierd: true}, 
-    url: {type:String, required:true}, 
-    password:{type: String, require: true}, 
-}, {collection: "Password"}); 
+interface IPassword extends Document {
+  nombre: string;
+  tipo_elemento: string;
+  url: string;
+  password: string;
+  userId: mongoose.Schema.Types.ObjectId; // Referencia al usuario
+}
 
-export default mongoose.model("Password", Password);
+const Password: Schema = new Schema({
+  nombre: { type: String, required: true },
+  tipo_elemento: { type: String, required: true },
+  url: { type: String, required: true },
+  password: { type: String, required: true },
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Referencia al usuario
+}, { collection: "Password" });
+
+export default mongoose.model<IPassword>("Password", Password);

@@ -5,7 +5,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import Password from './schemas/Password';
 import { sendPush } from './pushServer';
+import User from './schemas/User';
 import Suscription from './schemas/Suscription';
+import bcrypt from 'bcrypt';
 
 dotenv.config(); // Load environment variables
 
@@ -25,27 +27,89 @@ mongoose.connect(mongoURI)
 
 // Routes
 // Route to get all passwords
+app.post('/register', async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+  }
+
+  try {
+    // Verificar si el correo ya existe
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'El correo ya está en uso.' });
+    }
+
+    // Crear el nuevo usuario
+    const newUser = new User({ username, email, password });
+    await newUser.save();
+
+    res.status(201).json({ message: 'Usuario registrado exitosamente.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al registrar el usuario.', error });
+  }
+});
+
+
+app.post('/login', async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  console.log("Cuerpo de la solicitud:", req.body);
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+  }
+
+  try {
+    // Buscar usuario por correo electrónico
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Correo o contraseña incorrectos.' });
+    }
+
+    // Verificar contraseña
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Correo o contraseña incorrectos.' });
+    }
+
+    res.status(200).json({ message: 'Inicio de sesión exitoso.', userId: user._id });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al iniciar sesión.', error });
+  }
+});
+
 app.get('/get_passwords', async (req: Request, res: Response) => {
   try {
-    const passwords = await Password.find();
+    const userId = req.headers.userid as string; // Obtener userId desde los headers
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const passwords = await Password.find({ userId });
     res.status(200).json(passwords);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving passwords', error });
   }
 });
 
+
 // Route to add a new password
 app.post('/post_passwords', async (req: Request, res: Response) => {
-  const { nombre, tipo_elemento, url, password } = req.body;
+  const { nombre, tipo_elemento, url, password, userId } = req.body;
+  console.log("Datos recibidos:", req.body);
 
-  if (!nombre || !tipo_elemento || !url || !password) {
+  // Verificar que todos los campos necesarios están presentes
+  if (!nombre || !tipo_elemento || !url || !password || !userId) {
     return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
   try {
-    const nuevaPassword = new Password({ nombre, tipo_elemento, url, password });
+    // Crear la nueva contraseña asociada al usuario
+    const nuevaPassword = new Password({ nombre, tipo_elemento, url, password, userId });
     await nuevaPassword.save();
-    res.status(201).json(nuevaPassword);
+    res.status(201).json({ message: 'Contraseña guardada exitosamente', data: nuevaPassword });
   } catch (error) {
     res.status(500).json({ message: 'Error al guardar la contraseña.', error });
   }
