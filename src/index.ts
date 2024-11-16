@@ -128,11 +128,24 @@ app.delete('/delate/:id', async (req: Request, res: Response) => {
 
 // Route to add a new subscription
 app.post('/suscription', async (req: Request, res: Response) => {
-  const suscriptionData = req.body;
+  const { userId, endpoint, ...subscriptionData } = req.body;
 
   try {
-    const suscription = new Suscription(suscriptionData);
-    await suscription.save();
+    // Buscar si ya existe una suscripción con el mismo userId y endpoint
+    const existingSubscription = await Suscription.findOne({ userId, endpoint });
+
+    if (existingSubscription) {
+      return res.status(200).json({ message: 'El usuario ya está suscrito con este endpoint' });
+    }
+
+    // Crear una nueva suscripción
+    const newSubscription = new Suscription({
+      userId,
+      endpoint,
+      ...subscriptionData,
+    });
+
+    await newSubscription.save();
     res.status(200).json({ message: 'Suscripción añadida exitosamente' });
   } catch (error) {
     res.status(400).json({ error: 'Error al agregar la nueva suscripción' });

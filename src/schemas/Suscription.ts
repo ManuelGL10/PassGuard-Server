@@ -1,13 +1,18 @@
 import mongoose from "mongoose";
-const {Schema} = mongoose; 
+const { Schema } = mongoose;
 
-const Suscription = new Schema({
-    endpoint:{ type:String, required: true},
-    expirationTime: { type: Date, default:null},
-    keys:{
-        p256dh: { type:String, required: true},
-        auth: { type:String, required: true}, 
+const Subscription = new Schema(
+  {
+    userId: { 
+      type: Schema.Types.ObjectId, ref: "User", required: true},
+    endpoint: { type: String, required: true },
+    expirationTime: { type: Date, default: null },
+    keys: {
+      p256dh: { type: String, required: true },
+      auth: { type: String, required: true },
     },
-},{collection: "Suscription"});
+  },
+  { collection: "Subscription" }
+);
 
-export default mongoose.model("Suscription", Suscription); 
+export default mongoose.model("Subscription", Subscription);
