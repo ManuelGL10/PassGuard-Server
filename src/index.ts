@@ -152,16 +152,43 @@ app.post('/suscription', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/sendPush', async (req: Request, res: Response) => {
-  const pushSubscription = req.body;
+
+app.post('/sendNotification', async (req: Request, res: Response) => {
+  const { userId, message } = req.body;
 
   try {
-    await sendPush(pushSubscription);
+    // Buscar la suscripción del usuario
+    const subscription = await Suscription.findOne({ userId });
+    if (!subscription) {
+      return res.status(404).json({ error: 'No subscription found for the specified userId.' });
+    }
+
+    // Verificar si las claves existen
+    if (!subscription.keys || !subscription.keys.p256dh || !subscription.keys.auth) {
+      return res.status(400).json({ error: 'Invalid subscription keys.' });
+    }
+
+    // Formatear la suscripción para cumplir con el tipo PushSubscription
+    const pushSubscription = {
+      endpoint: subscription.endpoint,
+      expirationTime: subscription.expirationTime ? subscription.expirationTime.getTime() : null, // Convertir Date a número
+      keys: {
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+      },
+    };
+
+    // Enviar notificación push
+    await sendPush(pushSubscription, message);
     res.status(200).json({ message: 'Push notification sent successfully.' });
   } catch (error) {
+    console.error('Error sending push notification:', error);
     res.status(500).json({ error: 'Failed to send push notification.' });
   }
 });
+
+
+
 
 // Start server
 app.listen(port, () => {

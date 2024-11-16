@@ -1,26 +1,30 @@
-// src/pushServer.ts
-
 import webpush from 'web-push';
 import keys from './Keys.json';
 
-// Define la interfaz para pushSubscription
-interface PushSubscription {
-  endpoint: string;
-  expirationTime: number | null;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-}
-
+// Configurar las claves VAPID
 webpush.setVapidDetails(
   'mailto:luis.gomez.21s@utzmg.edu.mx',
   keys.publicKey,
   keys.privateKey
 );
 
-function sendPush(pushSubscription: PushSubscription) {
-  return webpush.sendNotification(pushSubscription, 'Confirmado, Luis es gay');
+// Definir tipos
+interface PushSubscription {
+  endpoint: string;
+  expirationTime?: number | null;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
 }
 
-export { sendPush };
+// Función para enviar notificaciones push
+export function sendPush(pushSubscription: PushSubscription, message: string) {
+  const payload = JSON.stringify({
+    title: 'Contraseña Guardada',
+    body: message,
+  });
+
+  return webpush.sendNotification(pushSubscription, payload);
+}
+ 
