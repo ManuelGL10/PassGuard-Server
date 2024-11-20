@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 
 // Interfaz para definir el tipo de datos en el modelo de usuario
 interface IUser extends Document {

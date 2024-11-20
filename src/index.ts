@@ -7,7 +7,7 @@ import Password from './schemas/Password';
 import { sendPush } from './pushServer';
 import User from './schemas/User';
 import Suscription from './schemas/Suscription';
-import bcrypt from 'bcrypt';
+
 
 dotenv.config(); // Load environment variables
 
