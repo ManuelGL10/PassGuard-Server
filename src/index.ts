@@ -12,7 +12,7 @@ import bcrypt from 'bcrypt';
 dotenv.config(); // Load environment variables
 
 const app = express();
-const port = process.env.SERVER_PORT;
+const port = process.env.PORT || 4000;
 
 // Middleware configuration
 app.use(express.json());
