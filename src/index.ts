@@ -12,7 +12,7 @@ import Suscription from './schemas/Suscription';
 dotenv.config(); // Load environment variables
 
 const app = express();
-const port = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware configuration
 app.use(express.json());
@@ -191,7 +191,7 @@ app.post('/sendNotification', async (req: Request, res: Response) => {
 
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
